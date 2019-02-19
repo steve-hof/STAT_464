@@ -17,19 +17,19 @@ library(tidyverse)
 # first, we start with the example from class
 
 
-f.nu <- function(n, u) {
-  
+f.nu <- function(n) {
+  u <- seq(-1, 1, by=.1)
+  total <- 100
   for(i in 1:21) {
     v <- c(1, u[i], u[i]^2)
     total = total + n[i]*v%*%t(v)
   }
   total <- total * 1/12
   # total <- det(total)
-  return(det(total))
+  return(-det(total))
 }
 
 sim_ann <- function() {
-  u <- seq(-1, 1, by=.1)
   n <- vector(length=21)
   
   ones <- rep(1,12)
@@ -37,15 +37,34 @@ sim_ann <- function() {
   n <- append(ones, zeros)
   n <- sample(n)
   
-  # nis <- c(0, 0)
-  
-  while(nis[1]=0) {
-    nis = sample(n,2)
+  for(i in 1:300) {
+    ind <- sample(1:21, 2)
+    
+    while(n[ind[1]]==0) {
+      ind <- sample(1:21, 2)
+    }
+    
+    n1 <- ind[1]
+    n2 <- ind[2]
+    test_n = n
+    test_n[n1] <- test_n[n1] - 1
+    test_n[n2] <- test_n[n2] + 1
+    y.new <- f.nu(test_n)
+    y.curr <- f.nu(n)
+    if(y.new < y.curr) {n = test_n}
   }
-  
-  new_ni1 <- nis[1] - 1
-  new_ni2 <- nis[2] + 1
+  return(n)
 }
+
+# res <- matrix(, nrow=20, ncol=2)
+# colnames(res) <- c("f(n)")
+for(fuck in 1:10) {
+  x <- sim_ann()
+  y <- f.nu(x)
+  cat(x, "\t", y, "\n")
+}
+
+# x <- sim_ann(); x
 
 ###################################################################################
 ################################    QUESTION #3    ################################
