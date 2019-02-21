@@ -10,61 +10,148 @@ setwd("~/school/math/Computational_Statistics_464/assignments/A2")
 library(dplyr)
 library(tidyverse)
 
+
 ###################################################################################
 ################################    QUESTION #2    ################################
 ###################################################################################
-
+# u0=c(-10:10)/10
+# N=length(u0)
+# points=c(1:N)
+# 
+# f=function(n,u=u0)
+# { A0=matrix(0,nrow=3,ncol=3)
+# N=length(u)
+# for (ii in c(1:N))
+# { A0=A0+n[ii]*c(1,u[ii],u[ii]^2)%*%t(c(1,u[ii],u[ii]^2))  }
+# A0=A0/12
+# # print(A0)
+# -det(A0)
+# }
 # first, we start with the example from class
 
+#  f.nu <- function(n) {
+#    u <- seq(-1, 1, by=.1)
+#    A <- 0
+#    for(i in 1:length(n)) {
+#      v <- c(1, u[i], u[i]^2)
+#      A = A + n[i]*v%*%t(v)
+#    }
+#    A <- A * 1/12
+# 
+#    return(-det(A))
+#  }
+# vec = c(4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4)
+# f.nu(vec)
+# 
+# 
+#  sim_ann <- function() {
+#   n <- vector(length=21)
+#   
+#   ones <- rep(1,12)
+#   zeros <- rep(0,9)
+#   n <- append(ones, zeros)
+#   n <- sample(n)
+#   mj <- 1000
+#   k <- 100
+#  for(i in 1:k) {
+#    for(j in 1:mj) {
+#      ind <- sample(1:n, 2)
+#   
+#      while(n[ind[1]]==0) {
+#        ind <- sample(1:n, 2)
+#      }
+#   
+#      n1 <- ind[1]
+#      n2 <- ind[2]
+#      test_n = n
+#      test_n[n1] <- test_n[n1] - 1
+#      test_n[n2] <- test_n[n2] + 1
+#      y.new <- f.nu(test_n)
+#      y.curr <- f.nu(n)
+#      if(y.new < y.curr) {n = test_n}
+#    }
+#  }
+#  return(n)
+#  }
+#  
+# sim_ann()
+# for(i in 1:10) {
+#  x <- sim_ann()
+#  y <- f.nu(x)
+#  cat(x, "\t", y, "\n")
+# }
+# 
+# my_winner = c(6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+# idiot = c(4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4)
+
+
+############### ACTUAL QUESTION 2 ##########################
+rm(list=ls())
+
+
+#' Title f.nu()
+#' 
+#' @description calculates the 'y' value for a given n
+#'
+#' @param n int vector of length 9 such that the sum of its elements = 9
+#'
+#' @return scalar value of the function evaluated at the given n
 
 f.nu <- function(n) {
-  u <- seq(-1, 1, by=.1)
-  total <- 100
-  for(i in 1:21) {
+  u = c(-1,-0.7,-0.5,-0.2,0,0.2,0.5,0.7,1)
+  A <- 0
+  for(i in 1:9) {
     v <- c(1, u[i], u[i]^2)
-    total = total + n[i]*v%*%t(v)
+    A = A + n[i] * v%*%t(v)
   }
-  total <- total * 1/12
-  # total <- det(total)
-  return(-det(total))
+  A <- A * 1/18
+  return(-det(A))
 }
 
+ # vec = c(4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4)
+ # f.nu(vec)
+ 
+#' Title sim_ann()
+#' 
+#' @description THIS IS NOT SIMULATED ANNEALING SO WHAT IN THE NAME OF FUUUUUCK??? LOL
+#'
+#' @return n: vector of length 9 that represents the algorithms best estimate for the 
+#'            input vector that minimizes the objective function f.nu
+
 sim_ann <- function() {
-  n <- vector(length=21)
-  
-  ones <- rep(1,12)
-  zeros <- rep(0,9)
-  n <- append(ones, zeros)
+  n <- vector(length=9)
+  n <- append(rep(3,6), rep(0,3))
   n <- sample(n)
-  
-  for(i in 1:300) {
-    ind <- sample(1:21, 2)
-    
-    while(n[ind[1]]==0) {
-      ind <- sample(1:21, 2)
+  k <- 100
+  m.j <- 1000
+  for(i in 1:k) {
+    for(j in 1:m.j) {
+      # choose two indices between 1 and 9
+      idx <- sample(1:9, 2)
+      
+      # ensure the first index is not zero
+      while(n[idx[1]]==0) {
+        idx <- sample(1:9, 2)
+      }
+      
+      # determine whether adjusting the 2 elements returns a lower value from the 
+      # objective function f.nu()
+      test_n = n
+      test_n[idx[1]] <- test_n[idx[1]] - 1
+      test_n[idx[2]] <- test_n[idx[2]] + 1
+      if(f.nu(test_n)< f.nu(n)) {n = test_n}
     }
-    
-    n1 <- ind[1]
-    n2 <- ind[2]
-    test_n = n
-    test_n[n1] <- test_n[n1] - 1
-    test_n[n2] <- test_n[n2] + 1
-    y.new <- f.nu(test_n)
-    y.curr <- f.nu(n)
-    if(y.new < y.curr) {n = test_n}
   }
   return(n)
 }
-
-# res <- matrix(, nrow=20, ncol=2)
-# colnames(res) <- c("f(n)")
-for(fuck in 1:10) {
+xi <- sim_ann()
+f.nu(xi)
+# print results to console
+for(i in 1:10) {
   x <- sim_ann()
   y <- f.nu(x)
   cat(x, "\t", y, "\n")
 }
-
-# x <- sim_ann(); x
 
 ###################################################################################
 ################################    QUESTION #3    ################################
@@ -177,7 +264,7 @@ p + stat_function(fun = obj.func) + xlim(0,10)
 
 # 
 num_starts <- 20
-random_start_results <- matrix(, nrow=num_starts, 3)
+random_start_results <- matrix(NA, nrow=num_starts, 3)
 colnames(random_start_results) <- c("start location", "x", "y")
 
 for(i in 1:num_starts) {
