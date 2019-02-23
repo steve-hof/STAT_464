@@ -1,0 +1,75 @@
+---
+title: "STAT 464 A2"
+author: "Steve Hof"
+date: '2019-02-22'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+setwd("~/school/math/Computational_Statistics_464/assignments/A2")
+source("A2_Q4.R")
+```
+
+{\Large \bf Question 4}
+
+```{r Question 4}
+path <- "~/school/math/Computational_Statistics_464/data_sets_and_textbook_R_code/datasets/baseball.dat"
+
+baseball.dat = read.table(path,header=TRUE)
+baseball.dat$freeagent = factor(baseball.dat$freeagent)
+baseball.dat$arbitration = factor(baseball.dat$arbitration)
+```
+
+{\bf Part a}
+
+```{r Question 4a}
+
+# mu rates to try
+mus = seq(.01, .9, by=.01)
+
+# create a container to store results
+mu_results = data.frame(NA, length(mus), 2)
+colnames(mu_results) = c("mutation rate", "AIC Value")
+
+i = 1
+for(mu in mus) {
+ mu_results[i, 1] = mu
+ mu_results[i, 2] = GA(baseball.dat, mu, P=20)[[2]]
+ i = i + 1
+
+}
+
+part_a_results = mu_results[1:2]
+part_a_reulsts
+save(part_a_results, file="part_a_results.Rda")
+```
+
+
+{\bf Part b}
+
+```{r part b}
+# Compare the effects of using different generation sizes
+pops = seq(10, 100, by=10)
+
+# create a container to store results
+pops_results = data.frame(NA, length(pops), 2)
+colnames(pops_results) = c("Generation Size", "AIC Value")
+
+i = 1
+for(p in pops) {
+ pops_results[i, 1] = p
+ pops_results[i, 2] = GA(data=baseball.dat, mu=.01, P=p)[[2]]
+ i = i + 1
+
+}
+
+```
+
+```{r}
+save(pops_results, file="part_b_results.Rda")
+```

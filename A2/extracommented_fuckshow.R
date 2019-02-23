@@ -15,7 +15,7 @@
 # runs.aic 	= AIC values for the models of each generation
 # P 		= size of each generation
 # itr 		= number of generations to run
-# m.rate 	= mutation rate
+# mu 	= mutation rate
 # r 		= ranks of AICs for a generation
 # phi 		= fitness values for a generation
 # run 		= vector of the parameters included in the best model found
@@ -35,20 +35,24 @@ baseball.dat$freeagent = factor(baseball.dat$freeagent)
 baseball.dat$arbitration = factor(baseball.dat$arbitration)
 baseball.sub = baseball.dat[,-1]
 salary.log = log(baseball.dat$salary)
+
 n = length(salary.log)
-m = length(baseball.sub[1,])
-P = 20
-itr = 100
-m.rate = .01
-r = matrix(0,P,1)
-phi = matrix(0,P,1)
-runs = matrix(0,P,m)
-runs.next = matrix(0,P,m)
-runs.aic = matrix(0,P,1)
-aics = matrix(0,P,itr)
-run = NULL
-best.aic = 0
-best.aic.gen = rep(0,itr)
+m = length(baseball.sub[1,]) # number of predictors in the full model
+P = 20 # number of individuals per generation
+itr = 100 # number of generations to run
+mu = .01 # mutation rate
+r = matrix(0,P,1) 
+phi = matrix(0,P,1) # matrix of fitness values for the generation
+runs = matrix(0,P,m)  # this is the 'genotypes' for each individual in the generation
+                      # later a variable called runs.vars could be considered the corresponding
+                      # 'phenotypes'
+runs.next = matrix(0,P,m) # same as 'runs' but for the next generation
+runs.aic = matrix(0,P,1) # single column matrix containing the AIC values for each generation
+aics = matrix(0,P,itr) # matrix of size (num individuals per generation) X (number of generations)
+run = NULL # i 
+best.aic = 0 # best aic value for any generation
+best.aic.gen = rep(0,itr) # vector containing the best aic value for each generation
+
 
 # INITIALIZES STARTING GENERATION, FITNESS VALUES
 set.seed(3219553) 
@@ -99,14 +103,14 @@ for(j in 1:itr-1){
     parent.2 = runs[sample(1:P,1),]
     
     # randomly select one number between 1 and 26 (not 27 because soon we'll be adding 
-    # one to this number). pos is short for position. soon it will be the boundary
+    # one to this number). pos is short for position. soon it will be the boundary (crossover point)
     # that separates where we select the first parent's genes and the second parent's genes
     pos = sample(1:(m-1),1)
     
-    # set elements of mutate equal to 0 or 1 w/ probability m.rate
-    mutate = rbinom(m,1,m.rate)
+    # set elements of mutate equal to 0 or 1 w/ probability mu
+    mutate = rbinom(m,1,mu)
     
-    # FINALLY, THE TWO LUCKY PARENTS GET TO BANG
+    # FINALLY, THE TWO LUCKY PARENTS GET TO BANG (crossover)
     # here, the ith row of runs.next is populated with a string of ones
     # and zeros from each parent
     runs.next[i,] = c(parent.1[1:pos],parent.2[(pos+1):m])
@@ -116,7 +120,7 @@ for(j in 1:itr-1){
     runs.next[i,] = (runs.next[i,]+mutate)%%2
     
     # create a new mutate vector the same way as a few lines ago
-    mutate = rbinom(m,1,m.rate)
+    mutate = rbinom(m,1,mu)
     
     # more sex! but this time parent.2 is the dominant and parent.1 is 
     # the submissive
@@ -126,13 +130,14 @@ for(j in 1:itr-1){
     runs.next[P+1-i,] = (runs.next[P+1-i,]+mutate)%%2
     
   }
-  # 
+  
   runs = runs.next
   debug = 12
   
   # UPDATES AIC VALUES, FITNESS VALUES FOR NEW GENERATION
   
-  # this chunk repeats the code that initialized the first generation. Here we 
+  # this chunk repeats the code that initialized the first generation. Here we keep doing it 
+  # until we have a full generation
   for(i in 1:P){
     run.vars = baseball.sub[,runs[i,]==1]
     g = lm(salary.log~.,run.vars)
